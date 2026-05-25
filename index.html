@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医疗咨询对话机器人</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 登录页面样式 */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .login-header h1 {
+            color: #374151;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2c7be5;
+            box-shadow: 0 0 0 3px rgba(44, 123, 229, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2c7be5 0%, #1a5fb4 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(44, 123, 229, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .login-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            color: #6b7280;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+
+        .login-tab.active {
+            color: #2c7be5;
+            border-bottom-color: #2c7be5;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* 主页样式 - 以问答为主 */
+        .home-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .home-header {
+            background: linear-gradient(135deg, #2c7be5 0%, #1a5fb4 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 4px 20px rgba(44, 123, 229, 0.3);
+        }
+
+        .home-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-brand .icon {
+            font-size: 28px;
+        }
+
+        .nav-brand h1 {
+            font-size: 20px;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 上方快捷功能区 */
+        .quick-tools {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .quick-tools-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+        }
+
+        .quick-tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .quick-tool-btn:hover {
+            background: #e5e7eb;
+            transform: translateY(-2px);
+        }
+
+        .quick-tool-btn .icon {
+            font-size: 18px;
+        }
+
+        .service-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: #f0fdf4;
+            border-radius: 25px;
+            font-size: 13px;
+        }
+
+        .service-status-badge.error {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+        }
+
+        /* 问答主区域 */
+        .qa-main {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .qa-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .qa-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .qa-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        .qa-section-title .icon {
+            font-size: 24px;
+        }
+
+        /* 常见问答列表 */
+        .qa-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .qa-item {
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .qa-item:hover {
+            background: #eff6ff;
+            transform: translateX(4px);
+        }
+
+        .qa-item .question {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .qa-item .question::before {
+            content: "Q";
+            background: #2c7be5;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .qa-item .answer {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+            padding-left: 28px;
+            display: none;
+        }
+
+        .qa-item.expanded .answer {
+            display: block;
+        }
+
+        /* 下方疑难杂症区 */
+        .bottom-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .bottom-section-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .bottom-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .disease-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .disease-category {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .disease-category h4 {
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .disease-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .disease-item {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .disease-item:hover {
+            background: #eff6ff;
+            color: #2c7be5;
+        }
+
+        /* 工具弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: #e5e7eb;
+        }
+
+        /* BMI计算器样式 */
+        .bmi-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bmi-result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0fdf4;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .bmi-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #059669;
+            margin-bottom: 10px;
+        }
+
+        .bmi-category {
+            font-size: 16px;
+            color: #065f46;
+            margin-bottom: 8px;
+        }
+
+        .bmi-suggestion {
+            font-size: 14px;
+            color: #059669;
+            line-height: 1.6;
+        }
+
+        /* 健康建议样式 */
+        .health-tips-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .health-tip-item {
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        .health-tip-item h5 {
+            font-size: 15px;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+
+        .health-tip-item p {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        /* 聊天页面样式 */
+        .chat-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 3px solid #2c7be5;
+        }
+
+        .category-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            margin: 12px 0 8px;
+            padding: 6px 10px;
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            margin-bottom: 6px;
+            background: #f9fafb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+        .history-item:hover {
+            background: #eff6ff;
+            transform: translateX(4px);
+        }
+
+        .history-query {
+            font-weight: 500;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .history-time {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 20px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .clear-history-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background: #f87171;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .clear-history-btn:hover {
+            background: #ef4444;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #2c7be5 0%, #1a5fb4 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(44, 123, 229, 0.3);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .header-info {
+            flex: 1;
+        }
+
+        .header-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .header-status {
+            font-size: 12px;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot-chat {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot-chat.offline {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message { justify-content: flex-end; }
+        .bot-message { justify-content: flex-start; }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin: 0 8px;
+        }
+
+        .bot-avatar {
+            background: linear-gradient(135deg, #2c7be5 0%, #1a5fb4 100%);
+            color: white;
+            font-size: 14px;
+        }
+
+        .user-avatar {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            font-size: 14px;
+        }
+
+        .message-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            line-height: 1.6;
+            position: relative;
+            word-break: break-word;
+        }
+
+        .user-message .message-bubble {
+            background: linear-gradient(135deg, #2c7be5 0%, #1a5fb4 100%);
+            color: white;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 4px 12px rgba(44, 123, 229, 0.3);
+        }
+
+        .bot-message .message-bubble {
+            background: white;
+            color: #374151;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 4px;
+            padding: 0 8px;
+        }
+
+        .user-message .message-time { text-align: right; }
+        .bot-message .message-time { text-align: left; }
+
+        .risk-tip {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca;
+            font-weight: 500;
+            margin-top: 8px !important;
+        }
+
+        .error-message-bubble {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 20px;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+            gap: 10px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #userInput {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 28px;
+            outline: none;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        #userInput:focus {
+            border-color: #2c7be5;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(44, 123, 229, 0.1);
+        }
+
+        #sendBtn {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #2c7be5 0%, #1a5fb4 100%);
+            color: white;
+            border: none;
+            border-radius: 28px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(44, 123, 229, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #sendBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(44, 123, 229, 0.5);
+        }
+
+        #sendBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .welcome-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .welcome-title {
+            color: #065f46;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .welcome-desc {
+            color: #059669;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .disclaimer {
+            font-size: 12px;
+            color: #9ca3af;
+            text-align: center;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 12px;
+            margin-top: auto;
+        }
+
+        .service-status {
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .service-status.online {
+            background: #f0fdf4;
+            color: #059669;
+        }
+
+        .service-status.offline {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="page login-page active">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="icon">🏥</div>
+                <h1>医疗咨询机器人</h1>
+                <p>智能医疗咨询助手</p>
+            </div>
+
+            <div class="login-tabs">
+                <div class="login-tab active" data-tab="login">登录</div>
+                <div class="login-tab" data-tab="register">注册</div>
+            </div>
+
+            <div id="loginError" class="error-message"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="btn btn-primary">登录</button>
+                <button type="button" class="btn btn-secondary" id="switchToLogin">没有账号？去注册</button>
+            </form>
+
+            <form id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="registerUsername" placeholder="请输入用户名（至少3位）" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="registerPassword" placeholder="请输入密码（至少6位）" required>
+                </div>
+                <div class="form-group">
+                    <label>确认密码</label>
+                    <input type="password" id="registerPassword2" placeholder="请再次输入密码" required>
+                </div>
+                <button type="submit" class="btn btn-primary">注册</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="homePage" class="page home-page">
+        <header class="home-header">
+            <nav class="home-nav">
+                <div class="nav-brand">
+                    <span class="icon">🏥</span>
+                    <h1>医疗咨询助手</h1>
+                </div>
+                <div class="nav-user">
+                    <div class="user-info">
+                        <span>👤</span>
+                        <span id="currentUsername">用户</span>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn">退出登录</button>
+                </div>
+            </nav>
+        </header>
+
+        <div class="quick-tools">
+            <div class="quick-tools-inner">
+                <button class="quick-tool-btn" onclick="openBMIModal()">
+                    <span class="icon">⚖️</span>
+                    <span>BMI计算器</span>
+                </button>
+                <button class="quick-tool-btn" onclick="openHealthTipsModal()">
+                    <span class="icon">💡</span>
+                    <span>健康建议</span>
+                </button>
+                <div class="service-status-badge" id="serviceStatusBadge">
+                    <span class="status-dot" id="homeStatusDot"></span>
+                    <span id="homeServiceStatus">检测中...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="qa-main">
+            <div class="qa-section">
+                <div class="qa-section-header">
+                    <div class="qa-section-title">
+                        <span class="icon">💬</span>
+                        <span>智能医疗咨询</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="showPage('chat')" style="width: auto; padding: 10px 20px;">
+                        开始咨询
+                    </button>
+                </div>
+
+                <div class="welcome-banner">
+                    <div class="welcome-icon">👋</div>
+                    <div class="welcome-title">您好，欢迎使用医疗咨询助手</div>
+                    <div class="welcome-desc">本系统基于 Gemma3-12B 大模型，提供智能医疗咨询服务。点击下方常见问题或开始咨询按钮与我互动。</div>
+                </div>
+
+                <div class="qa-section-header" style="margin-top: 20px;">
+                    <div class="qa-section-title">
+                        <span class="icon">❓</span>
+                        <span>常见问答</span>
+                    </div>
+                </div>
+
+                <div class="qa-list-container" id="qaListContainer">
+                    <div style="text-align: center; padding: 20px; color: #9ca3af;">加载中...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-section">
+            <div class="bottom-section-inner">
+                <div class="bottom-section-title">
+                    <span>🔬</span>
+                    <span>疑难杂症参考</span>
+                </div>
+                <div class="disease-categories" id="diseaseCategories">
+                    <div style="text-align: center; padding: 20px; color: #9ca3af; grid-column: 1/-1;">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatPage" class="page chat-page">
+        <header class="chat-header">
+            <div class="header-left">
+                <button class="back-btn" onclick="showPage('home')">← 返回</button>
+                <div class="avatar">🏥</div>
+                <div class="header-info">
+                    <div class="header-title">医疗咨询助手</div>
+                    <div class="header-status">
+                        <span class="status-dot-chat" id="statusDot"></span>
+                        <span id="statusText">检测中...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="service-status" id="serviceStatus">检测中...</div>
+        </header>
+
+        <div class="main-container">
+            <div class="sidebar">
+                <div class="sidebar-title">对话历史</div>
+                <div id="historyList">
+                    <div class="history-empty">暂无对话记录</div>
+                </div>
+                <button class="clear-history-btn" id="clearHistoryBtn">清空历史</button>
+
+                <div class="sidebar-title" style="margin-top: 20px;">常见症状</div>
+                <div class="category-title">点击快速查询</div>
+                <div class="history-item" data-query="发烧应该怎么处理？">
+                    <div class="history-query">发烧怎么办</div>
+                </div>
+                <div class="history-item" data-query="高血压患者饮食注意什么？">
+                    <div class="history-query">高血压饮食</div>
+                </div>
+                <div class="history-item" data-query="如何预防感冒？">
+                    <div class="history-query">预防感冒</div>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot-message">
+                        <div class="message-avatar bot-avatar">🏥</div>
+                        <div class="message-content">
+                            <div class="message-bubble">您好！我是医疗咨询助手。请问有什么可以帮您？您可以描述症状、询问疾病信息，或点击左侧快捷问题快速咨询。</div>
+                            <div class="message-time" id="welcomeTime"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input">
+                    <div class="input-wrapper">
+                        <input type="text" id="userInput" placeholder="请输入您的问题...">
+                    </div>
+                    <button id="sendBtn">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="bmiModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">⚖️ BMI计算器</div>
+                <button class="modal-close" onclick="closeBMIModal()">×</button>
+            </div>
+            <div class="bmi-form">
+                <div class="form-group">
+                    <label>身高 (cm)</label>
+                    <input type="number" id="bmiHeight" placeholder="请输入身高，如：170">
+                </div>
+                <div class="form-group">
+                    <label>体重 (kg)</label>
+                    <input type="number" id="bmiWeight" placeholder="请输入体重，如：65">
+                </div>
+                <button class="btn btn-primary" onclick="calculateBMI()">计算BMI</button>
+                <div id="bmiResult" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="healthTipsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">💡 健康建议</div>
+                <button class="modal-close" onclick="closeHealthTipsModal()">×</button>
+            </div>
+            <div class="health-tips-list" id="healthTipsList">
+                <div style="text-align: center; padding: 20px;">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+
+        let currentUser = null;
+        let authToken = null;
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageName + 'Page').classList.add('active');
+
+            if (pageName === 'chat') {
+                checkServiceStatus();
+                loadHistoryList();
+            } else if (pageName === 'home') {
+                checkServiceStatusHome();
+                loadQAExamplesHome();
+                loadDifficultDiseasesHome();
+                document.getElementById('currentUsername').textContent = currentUser || '用户';
+            }
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('loginError');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+            setTimeout(() => errorEl.classList.remove('show'), 3000);
+        }
+
+        document.querySelectorAll('.login-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                if (tab.dataset.tab === 'login') {
+                    document.getElementById('loginForm').style.display = 'block';
+                    document.getElementById('registerForm').style.display = 'none';
+                } else {
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('registerForm').style.display = 'block';
+                }
+            });
+        });
+
+        document.getElementById('switchToLogin').addEventListener('click', () => {
+            document.querySelector('.login-tab[data-tab="login"]').click();
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUser = data.username;
+                    authToken = data.token;
+                    localStorage.setItem('currentUser', currentUser);
+                    localStorage.setItem('authToken', authToken);
+                    showPage('home');
+                } else {
+                    showError(data.error || '登录失败');
+                }
+            } catch (error) {
+                showError('网络错误，请检查服务是否启动');
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const password2 = document.getElementById('registerPassword2').value;
+
+            if (password !== password2) {
+                showError('两次密码输入不一致');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUser = data.username;
+                    authToken = data.token;
+                    localStorage.setItem('currentUser', currentUser);
+                    localStorage.setItem('authToken', authToken);
+                    showPage('home');
+                } else {
+                    showError(data.error || '注册失败');
+                }
+            } catch (error) {
+                showError('网络错误，请检查服务是否启动');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            authToken = null;
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('authToken');
+            showPage('login');
+        });
+
+        async function checkServiceStatusHome() {
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+
+                const statusDot = document.getElementById('homeStatusDot');
+                const statusBadge = document.getElementById('serviceStatusBadge');
+
+                if (data.ollama_available) {
+                    document.getElementById('homeServiceStatus').textContent = `服务正常 | 模型: ${data.model}`;
+                    statusDot.classList.remove('offline');
+                    statusBadge.classList.remove('error');
+                } else {
+                    document.getElementById('homeServiceStatus').textContent = 'Ollama服务未启动';
+                    statusDot.classList.add('offline');
+                    statusBadge.classList.add('error');
+                }
+            } catch (error) {
+                document.getElementById('homeServiceStatus').textContent = '无法连接服务器';
+                document.getElementById('homeStatusDot').classList.add('offline');
+                document.getElementById('serviceStatusBadge').classList.add('error');
+            }
+        }
+
+        async function loadQAExamplesHome() {
+            const container = document.getElementById('qaListContainer');
+            try {
+                const response = await fetch(`${API_BASE}/api/qa_examples`);
+                const data = await response.json();
+
+                container.innerHTML = data.qa_examples.map(qa => `
+                    <div class="qa-item" onclick="toggleQA(this)">
+                        <div class="question">${qa.question}</div>
+                        <div class="answer">${qa.answer}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<div style="color: #dc2626; text-align: center;">加载失败</div>';
+            }
+        }
+
+        function toggleQA(element) {
+            element.classList.toggle('expanded');
+        }
+
+        async function loadDifficultDiseasesHome() {
+            const container = document.getElementById('diseaseCategories');
+            try {
+                const response = await fetch(`${API_BASE}/api/difficult_diseases`);
+                const data = await response.json();
+
+                container.innerHTML = data.diseases.map(cat => `
+                    <div class="disease-category">
+                        <h4>${cat.category}</h4>
+                        <div class="disease-list">
+                            ${cat.items.map(item => `
+                                <div class="disease-item" onclick="showPage('chat'); document.getElementById('userInput').value='${item.name}有什么症状？';">
+                                    ${item.name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<div style="color: #dc2626; text-align: center;">加载失败</div>';
+            }
+        }
+
+        function openBMIModal() {
+            document.getElementById('bmiModal').classList.add('active');
+            document.getElementById('bmiResult').style.display = 'none';
+        }
+
+        function closeBMIModal() {
+            document.getElementById('bmiModal').classList.remove('active');
+        }
+
+        async function calculateBMI() {
+            const height = parseFloat(document.getElementById('bmiHeight').value);
+            const weight = parseFloat(document.getElementById('bmiWeight').value);
+
+            if (!height || !weight || height <= 0 || weight <= 0) {
+                alert('请输入有效的身高和体重');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tools/bmi`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ height, weight })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const resultDiv = document.getElementById('bmiResult');
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `
+                        <div class="bmi-result">
+                            <div class="bmi-value">${data.bmi}</div>
+                            <div class="bmi-category">${data.category}</div>
+                            <div class="bmi-suggestion">${data.suggestion}</div>
+                            <div style="margin-top: 10px; font-size: 12px; color: #6b7280;">${data.range_info}</div>
+                        </div>
+                    `;
+                } else {
+                    alert(data.error || '计算失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        function openHealthTipsModal() {
+            document.getElementById('healthTipsModal').classList.add('active');
+            loadHealthTips();
+        }
+
+        function closeHealthTipsModal() {
+            document.getElementById('healthTipsModal').classList.remove('active');
+        }
+
+        async function loadHealthTips() {
+            const container = document.getElementById('healthTipsList');
+            try {
+                const response = await fetch(`${API_BASE}/api/tools/health_tips`);
+                const data = await response.json();
+
+                if (data.tips && data.tips.length > 0) {
+                    container.innerHTML = data.tips.map(tip => `
+                        <div class="health-tip-item">
+                            <h5>${tip.title}</h5>
+                            <p>${tip.content}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div style="color: #9ca3af; text-align: center;">暂无健康建议</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div style="color: #dc2626; text-align: center;">加载失败</div>';
+            }
+        }
+
+        document.getElementById('welcomeTime').textContent = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const serviceStatus = document.getElementById('serviceStatus');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        function formatTime(date = new Date()) {
+            return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        function formatDateTime(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        function addMessage(text, isUser = false, riskTip = "", isError = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `message-avatar ${isUser ? 'user-avatar' : 'bot-avatar'}`;
+            avatar.textContent = isUser ? '👤' : isError ? '❌' : '🏥';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${isError ? 'error-message-bubble' : ''}`;
+            bubble.textContent = text;
+
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = formatTime();
+
+            content.appendChild(bubble);
+            content.appendChild(time);
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            chatMessages.appendChild(messageDiv);
+
+            if (riskTip) {
+                const tipDiv = document.createElement('div');
+                tipDiv.className = 'message bot-message';
+
+                const tipAvatar = document.createElement('div');
+                tipAvatar.className = 'message-avatar bot-avatar';
+                tipAvatar.textContent = '⚠️';
+
+                const tipContent = document.createElement('div');
+                tipContent.className = 'message-content';
+
+                const tipBubble = document.createElement('div');
+                tipBubble.className = 'message-bubble risk-tip';
+                tipBubble.textContent = riskTip;
+
+                tipContent.appendChild(tipBubble);
+                tipDiv.appendChild(tipAvatar);
+                tipDiv.appendChild(tipContent);
+                chatMessages.appendChild(tipDiv);
+            }
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            removeTypingIndicator();
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.id = 'typing-indicator';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar bot-avatar';
+            avatar.textContent = '🏥';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+
+            content.appendChild(indicator);
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(content);
+            chatMessages.appendChild(typingDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        async function checkServiceStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/health`, { timeout: 5000 });
+                const data = await response.json();
+
+                if (data.ollama_available) {
+                    statusDot.classList.remove('offline');
+                    statusText.textContent = '在线';
+                    serviceStatus.className = 'service-status online';
+                    serviceStatus.textContent = '✅ 服务正常';
+                } else {
+                    statusDot.classList.add('offline');
+                    statusText.textContent = '离线';
+                    serviceStatus.className = 'service-status offline';
+                    serviceStatus.textContent = '❌ Ollama服务未启动';
+                }
+                return data.ollama_available;
+            } catch {
+                statusDot.classList.add('offline');
+                statusText.textContent = '离线';
+                serviceStatus.className = 'service-status offline';
+                serviceStatus.textContent = '❌ 连接失败';
+                return false;
+            }
+        }
+
+        async function sendMessage(messageText = null) {
+            const message = messageText || userInput.value.trim();
+            if (!message) return;
+
+            const available = await checkServiceStatus();
+            if (!available) {
+                addMessage("❌ 服务未连接！\n\n请检查：\n1. Ollama服务是否已启动\n2. gemma3:12b模型是否已下载\n3. 网络连接是否正常", false, "", true);
+                return;
+            }
+
+            addMessage(message, true);
+            userInput.value = '';
+            sendBtn.disabled = true;
+
+            showTypingIndicator();
+
+            try {
+                const response = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message }),
+                    timeout: 60000
+                });
+
+                removeTypingIndicator();
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.reply || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!data.service_available) {
+                    statusDot.classList.add('offline');
+                    statusText.textContent = '离线';
+                }
+
+                addMessage(data.reply, false, data.risk_tip, data.error ? true : false);
+                loadHistoryList();
+            } catch (error) {
+                removeTypingIndicator();
+                addMessage(error.message || "抱歉，服务暂时不可用，请稍后再试。", false, "", true);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        async function loadHistoryList() {
+            try {
+                const response = await fetch(`${API_BASE}/api/history?limit=10`);
+                const data = await response.json();
+
+                if (data.history && data.history.length > 0) {
+                    historyList.innerHTML = '';
+                    data.history.forEach(item => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'history-item';
+                        historyItem.setAttribute('data-query', item.user_input);
+                        historyItem.innerHTML = `
+                            <div class="history-query">${item.user_input}</div>
+                            <div class="history-time">${formatDateTime(item.created_at)}</div>
+                        `;
+                        historyItem.addEventListener('click', () => {
+                            userInput.value = item.user_input;
+                            sendMessage(item.user_input);
+                        });
+                        historyList.appendChild(historyItem);
+                    });
+                } else {
+                    historyList.innerHTML = '<div class="history-empty">暂无对话记录</div>';
+                }
+            } catch (error) {
+                console.error('加载历史记录失败:', error);
+            }
+        }
+
+        async function clearAllHistory() {
+            try {
+                await fetch(`${API_BASE}/api/history/clear`, { method: 'DELETE' });
+                loadHistoryList();
+            } catch (error) {
+                console.error('清空历史记录失败:', error);
+            }
+        }
+
+        sendBtn.addEventListener('click', () => sendMessage());
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        userInput.addEventListener('input', () => {
+            sendBtn.disabled = !userInput.value.trim();
+        });
+
+        clearHistoryBtn.addEventListener('click', () => {
+            if (confirm('确定要清空所有对话历史吗？')) {
+                clearAllHistory();
+            }
+        });
+
+        document.querySelectorAll('.history-item[data-query]').forEach(item => {
+            item.addEventListener('click', () => {
+                const query = item.getAttribute('data-query');
+                userInput.value = query;
+                sendMessage(query);
+            });
+        });
+
+        currentUser = localStorage.getItem('currentUser');
+        authToken = localStorage.getItem('authToken');
+
+        if (currentUser && authToken) {
+            document.getElementById('currentUsername').textContent = currentUser;
+            showPage('home');
+        } else {
+            showPage('login');
+        }
+    </script>
+</body>
+</html>
